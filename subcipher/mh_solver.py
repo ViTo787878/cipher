@@ -8,8 +8,7 @@ from subcipher.cipher import substitute_decrypt
 from subcipher.constants import ALPHABET
 
 
-def metropolis_hastings(ciphertext: str, tm_ref: np.ndarray, iterations: int = 20000, initial_temp: float = 1.0) -> \
-tuple[str, float]:
+def metropolis_hastings(ciphertext: str, tm_ref: np.ndarray, iterations: int = 20000, initial_temp: float = 1.0) -> tuple[str, float]:
     """
     Implements the Metropolis-Hastings algorithm with simulated annealing.
 
@@ -22,7 +21,6 @@ tuple[str, float]:
     Returns:
         tuple containing the best key found and its score
     """
-    global score_diff
     current_key = list(ALPHABET)
     random.shuffle(current_key)
     current_key = ''.join(current_key)
@@ -46,11 +44,12 @@ tuple[str, float]:
         new_text = substitute_decrypt(ciphertext, new_key)
         new_score = calculate_plausibility(new_text, tm_ref)
 
+        score_diff = 0.0
         try:
             score_diff = new_score - current_score
             acceptance_probability = math.exp(min(score_diff / temperature, 700))  # Limit exponent to prevent overflow
         except (OverflowError, ZeroDivisionError):
-            acceptance_probability = 1.0 if score_diff > 0 else 0.0
+            acceptance_probability = 1.0 if score_diff and score_diff  > 0 else 0.0
 
         if new_score > current_score or random.random() < acceptance_probability:
             current_key = new_key

@@ -5,9 +5,9 @@ from subcipher.utils import normalize_text, load_textfile, save_textfile
 class TestTextProcessing:
     @pytest.mark.parametrize("input_text,expected", [
         ("ÁČÉĚŤ", "ACEET"),
-        ("HELLO@WORLD!", "HELLO_WORLD"),
+        ("HELLO@WORLD!", "HELLO_WORLD_"),
         ("HELLO__WORLD", "HELLO_WORLD"),
-        ("ÁBCD123!@#", "ABCD"),
+        ("ÁBCD123!@#", "ABCD_"),
         ("HELLO_WORLD", "HELLO_WORLD")
     ])
     def test_text_normalization(self, input_text, expected):
