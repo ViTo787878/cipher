@@ -1,43 +1,56 @@
 import math
 import random
+
 import numpy as np
-from subcipher.cipher import substitute_decrypt
+
 from subcipher.analysis import calculate_plausibility
+from subcipher.cipher import substitute_decrypt
 from subcipher.constants import ALPHABET
 
 
-def metropolis_hastings(ciphertext: str, tm_ref: np.ndarray, iterations: int = 20000) -> tuple[str, float]:
-    # Počáteční náhodný klíč
+def metropolis_hastings(ciphertext: str, tm_ref: np.ndarray, iterations: int = 20000, initial_temp: float = 1.0) -> \
+tuple[str, float]:
+    """
+    Implements the Metropolis-Hastings algorithm with simulated annealing.
+
+    Args:
+        ciphertext: The encrypted text to decrypt
+        tm_ref: Reference transition matrix
+        iterations: Number of iterations to perform
+        initial_temp: Initial temperature for simulated annealing
+
+    Returns:
+        tuple containing the best key found and its score
+    """
+    global score_diff
     current_key = list(ALPHABET)
     random.shuffle(current_key)
     current_key = ''.join(current_key)
 
-    # Počáteční dekódování a skóre
     current_text = substitute_decrypt(ciphertext, current_key)
     current_score = calculate_plausibility(current_text, tm_ref)
 
     best_key = current_key
     best_score = current_score
 
-    # Parametry pro simulované žíhání
-    initial_temp = 1.0
+    min_temp = 1e-10  # Minimum temperature to prevent division by zero
 
     for i in range(iterations):
-        # Snižování teploty
-        temperature = initial_temp * (1 - i / iterations)
+        temperature = max(initial_temp * (1 - i / iterations), min_temp)
 
-        # Generování nového kandidátního řešení
         new_key = list(current_key)
         idx1, idx2 = random.sample(range(len(ALPHABET)), 2)
         new_key[idx1], new_key[idx2] = new_key[idx2], new_key[idx1]
         new_key = ''.join(new_key)
 
-        # Vyhodnocení kandidáta
         new_text = substitute_decrypt(ciphertext, new_key)
         new_score = calculate_plausibility(new_text, tm_ref)
 
-        # Metropolis kritérium s teplotou
-        acceptance_probability = math.exp((new_score - current_score) / temperature)
+        try:
+            score_diff = new_score - current_score
+            acceptance_probability = math.exp(min(score_diff / temperature, 700))  # Limit exponent to prevent overflow
+        except (OverflowError, ZeroDivisionError):
+            acceptance_probability = 1.0 if score_diff > 0 else 0.0
 
         if new_score > current_score or random.random() < acceptance_probability:
             current_key = new_key
@@ -48,6 +61,6 @@ def metropolis_hastings(ciphertext: str, tm_ref: np.ndarray, iterations: int = 2
                 best_score = current_score
 
         if (i + 1) % 500 == 0:
-            print(f"Iterace {i + 1} | aktuální skóre: {current_score:.4f} | nejlepší skóre: {best_score:.4f}")
+            print(f"Iteration {i + 1} | current score: {current_score:.4f} | best score: {best_score:.4f}")
 
     return best_key, best_score

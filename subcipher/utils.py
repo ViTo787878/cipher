@@ -1,5 +1,6 @@
 import math
 import os
+from pathlib import Path
 
 from subcipher.constants import ALPHABET
 
@@ -8,7 +9,7 @@ def load_textfile(file_path: str) -> str:
     with open(file_path, 'r', encoding='utf-8') as file:
         return file.read()
 
-def save_textfile(text: str, output_path: str) -> None:
+def save_textfile(text: str, output_path: Path) -> None:
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, 'w', encoding='utf-8') as file:
         file.write(text)
