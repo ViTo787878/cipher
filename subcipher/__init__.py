@@ -1,1 +1,1 @@
-from cipher import substitute_encrypt, substitute_decrypt
+from subcipher import cipher, utils

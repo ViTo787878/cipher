@@ -52,5 +52,4 @@ def plausibility(text: str, TM_ref: np.ndarray, alphabet: str) -> float:
         Log-likelihood skóre (float)
     """
     TM_obs = transition_matrix(get_bigrams(text), alphabet)
-    likelihood = np.sum(np.log(TM_ref) * TM_obs)
-    return likelihood
+    return np.sum(np.log(TM_ref) * TM_obs)
