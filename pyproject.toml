@@ -1,0 +1,27 @@
+[project]
+name = "subcrypto"
+version = "0.1.0"
+description = "Knihovna pro substituční šifru a její prolomení"
+authors = [
+  { name="Alois Šenkyřík", email="alois.senkyrik@unicornuniversity.com" },
+  { name="Olexandr Zagarin", email="olexandr.zagarin@unicornuniversity.com" },
+  { name="Tomáš Pýcha", email="tomas.pycha@unicornuniversity.com" },
+  { name="Vitalii Futrak", email="vitalii.futrak@unicornuniversity.com" },
+  { name="Tomnáš Palai", email="tomas.palai@unicornuniversity.com" },
+]
+license = {text = "MIT"}
+dependencies = [
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "jupyter"
+]
+readme = "README.md"
+requires-python = ">=3.13"
+
+[project.optional-dependencies]
+dev = ["pytest", "black", "isort", "mypy"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"

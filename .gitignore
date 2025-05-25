@@ -1,9 +1,19 @@
+# Ignoruj výstupy z dešifrování
+outputs/
+*.plaintext.txt
+*.key.txt
+
+# Ignoruj prostředí
+.venv/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.env
-.env.*
+
+# Ignoruj notebook checkpointy
 .ipynb_checkpoints/
-*.ipynb_checkpoints
-.DS_Store
+
+# Ignoruj IDE metadata (PyCharm)
+.idea/
+
+# Ignoruj exportované notebooky
+*.pdf
+*.html
