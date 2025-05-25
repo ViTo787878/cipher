@@ -15,5 +15,4 @@ __pycache__/
 .idea/
 
 # Ignoruj exportované notebooky
-*.pdf
 *.html
