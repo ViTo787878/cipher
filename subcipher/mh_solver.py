@@ -60,6 +60,6 @@ def metropolis_hastings(ciphertext: str, tm_ref: np.ndarray, iterations: int = 2
                 best_score = current_score
 
         if (i + 1) % 500 == 0:
-            print(f"Iteration {i + 1} | current score: {current_score:.4f} | best score: {best_score:.4f}")
+            print(f"\rIteration {i + 1:5d} | current score: {current_score:.4f} | best score: {best_score:.4f}", end="\033[K")
 
     return best_key, best_score
