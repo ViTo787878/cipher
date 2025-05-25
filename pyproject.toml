@@ -14,7 +14,8 @@ dependencies = [
     "numpy",
     "pandas",
     "matplotlib",
-    "jupyter"
+    "jupyter",
+    "PyPDF2"
 ]
 readme = "README.md"
 requires-python = ">=3.13"
