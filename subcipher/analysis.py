@@ -1,4 +1,9 @@
+import math
+
 import numpy as np
+
+from subcipher.constants import ALPHABET
+
 
 def get_bigrams(text: str) -> list[str]:
     """
@@ -53,3 +58,17 @@ def plausibility(text: str, TM_ref: np.ndarray, alphabet: str) -> float:
     """
     TM_obs = transition_matrix(get_bigrams(text), alphabet)
     return np.sum(np.log(TM_ref) * TM_obs)
+
+
+def calculate_plausibility(text: str, tm_ref: np.ndarray) -> float:
+    bigrams = get_bigrams(text)
+
+    log_plausibility = 0.0
+    epsilon = 1e-10
+
+    for bg in bigrams:
+        i, j = map(lambda x: ALPHABET.index(x), bg)
+        prob = tm_ref[i, j]
+        log_plausibility += math.log(prob + epsilon)
+
+    return log_plausibility

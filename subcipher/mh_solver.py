@@ -1,68 +1,53 @@
+import math
 import random
 import numpy as np
 from subcipher.cipher import substitute_decrypt
-from subcipher.analysis import plausibility
+from subcipher.analysis import plausibility, calculate_plausibility
+from subcipher.constants import ALPHABET
 
-def generate_random_key(alphabet: str) -> str:
-    """
-    Vygeneruje náhodnou permutaci klíče.
-    """
-    key_list = list(alphabet)
-    random.shuffle(key_list)
-    return ''.join(key_list)
 
-def swap_random(key: str) -> str:
-    """
-    Vrátí nový klíč s prohozenými dvěma náhodnými znaky.
-    """
-    key_list = list(key)
-    i, j = random.sample(range(len(key_list)), 2)
-    key_list[i], key_list[j] = key_list[j], key_list[i]
-    return ''.join(key_list)
+def metropolis_hastings(ciphertext: str, tm_ref: np.ndarray, iterations: int = 20000) -> tuple[str, float]:
+    # Počáteční náhodný klíč
+    current_key = list(ALPHABET)
+    random.shuffle(current_key)
+    current_key = ''.join(current_key)
 
-def prolom_substitute(text: str, TM_ref: np.ndarray, iter: int, alphabet: str, start_key: str = None):
-    """
-    Metropolis-Hastings algoritmus pro kryptoanalýzu substituční šifry.
-
-    Args:
-        text: zašifrovaný text
-        TM_ref: referenční matice přechodů (relativní)
-        iter: počet iterací
-        alphabet: abeceda (např. ABC...Z_)
-        start_key: volitelný výchozí klíč (jinak náhodný)
-
-    Returns:
-        Tuple (nejlepší_klíč, dešifrovaný_text, skóre)
-    """
-    if start_key is None:
-        current_key = generate_random_key(alphabet)
-    else:
-        current_key = start_key
-
-    decrypted_current = substitute_decrypt(text, current_key)
-    p_current = plausibility(decrypted_current, TM_ref, alphabet)
+    # Počáteční dekódování a skóre
+    current_text = substitute_decrypt(ciphertext, current_key)
+    current_score = calculate_plausibility(current_text, tm_ref)
 
     best_key = current_key
-    best_score = p_current
-    best_decryption = decrypted_current
+    best_score = current_score
 
-    for i in range(1, iter + 1):
-        candidate_key = swap_random(current_key)
-        decrypted_candidate = substitute_decrypt(text, candidate_key)
-        p_candidate = plausibility(decrypted_candidate, TM_ref, alphabet)
+    # Parametry pro simulované žíhání
+    initial_temp = 1.0
 
-        q = np.exp(p_candidate - p_current)
+    for i in range(iterations):
+        # Snižování teploty
+        temperature = initial_temp * (1 - i / iterations)
 
-        if q > 1 or random.random() < q:
-            current_key = candidate_key
-            p_current = p_candidate
+        # Generování nového kandidátního řešení
+        new_key = list(current_key)
+        idx1, idx2 = random.sample(range(len(ALPHABET)), 2)
+        new_key[idx1], new_key[idx2] = new_key[idx2], new_key[idx1]
+        new_key = ''.join(new_key)
 
-            if p_current > best_score:
+        # Vyhodnocení kandidáta
+        new_text = substitute_decrypt(ciphertext, new_key)
+        new_score = calculate_plausibility(new_text, tm_ref)
+
+        # Metropolis kritérium s teplotou
+        acceptance_probability = math.exp((new_score - current_score) / temperature)
+
+        if new_score > current_score or random.random() < acceptance_probability:
+            current_key = new_key
+            current_score = new_score
+
+            if current_score > best_score:
                 best_key = current_key
-                best_score = p_current
-                best_decryption = decrypted_candidate
+                best_score = current_score
 
-        if i % 500 == 0:
-            print(f"Iterace {i} | aktuální skóre: {p_current:.4f} | nejlepší skóre: {best_score:.4f}")
+        if (i + 1) % 500 == 0:
+            print(f"Iterace {i + 1} | aktuální skóre: {current_score:.4f} | nejlepší skóre: {best_score:.4f}")
 
-    return best_key, best_decryption, best_score
+    return best_key, best_score

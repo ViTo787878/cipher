@@ -1,6 +1,7 @@
+from subcipher.cipher import substitute_decrypt
 from subcipher.constants import ALPHABET
 from subcipher.analysis import get_bigrams, transition_matrix, plausibility
-from subcipher.mh_solver import prolom_substitute
+from subcipher.mh_solver import metropolis_hastings
 from subcipher.utils import load_text, normalize_text, save_text, log_to_percentage
 
 if __name__ == "__main__":
@@ -15,7 +16,7 @@ if __name__ == "__main__":
 
     print(log_to_percentage(tata))
     encrypted = "HAZW_BLNHWHWJUHVVDWAZPI_PTSZWQUZBZMW_YUZIWBZMZNW_WSJULIWHWOMTBIZWY_SNUJHCHMWAHJ_WTUCHIZWPLDZWHMZWB_YHJWWCFOUJMWYU_J_YWHWBODZMWSZWRCZPI_TDWHMZWAZPZIWYHIWNTWY_M_RLMWIHWBZM_WUTJTWAZRWQFMHWDHJWNZJJHWHWP_QUHWDHJWTALSDTALBLWHWRU_CIHWSCHDHWIHWONHDWRZWSZWUHR"
-    best_key, decrypted_text, score = prolom_substitute(encrypted, bigram_matrix, 20000, ALPHABET)
+    best_key, best_score = metropolis_hastings(encrypted, bigram_matrix, 200000)
 
-    print(f'Key: {best_key}\nDecrypted: {decrypted_text}\nScore: {log_to_percentage(score)}')
+    print(f'Key: {best_key}\nDecrypted: {substitute_decrypt(encrypted, best_key)}\nScore: {log_to_percentage(best_score)} %')
 
