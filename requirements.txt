@@ -22,3 +22,4 @@ pandas==2.2.3
 ipython==9.2.0
 typing_extensions==4.13.2
 tqdm==4.67.1
+pandoc
