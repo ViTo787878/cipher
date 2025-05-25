@@ -1,22 +1,23 @@
 from subcipher.cipher import substitute_decrypt
 from subcipher.constants import ALPHABET
-from subcipher.analysis import get_bigrams, transition_matrix, plausibility
+from subcipher.analysis import get_bigrams, transition_matrix, calculate_plausibility
 from subcipher.mh_solver import metropolis_hastings
-from subcipher.utils import load_text, normalize_text, save_text, log_to_percentage
+from subcipher.utils import load_textfile, normalize_text, save_textfile, log_to_percentage
 
 if __name__ == "__main__":
-    sanitized_text = normalize_text(load_text("data_samples/krakatit.txt").upper())
+    loaded_text = load_textfile("data_samples/krakatit.txt")
+    sanitized_text = normalize_text(loaded_text)
+
     bigrams = get_bigrams(sanitized_text)
-    # print(bigrams)
-    # save_text(" ".join(bigrams), "bigrams.txt")
     bigram_matrix = transition_matrix(bigrams, ALPHABET)
 
     a = "_VOZEM_DO_NEHO_A_ZAS_MNE_BEZI_DO_CESTY__ZACHVELA_SE_TAK_KUDY_VPRAVO_NEBO_VLEVO_TEDY_JE_KONEC_PTAL_SE_TISE_POKYVLA_HLAVOU_TEDY_JE_KONEC_OTEVREL_DVIRKA_VYSKOCIL_Z_VOZU_A_POSTAVIL_SE_PRED_KOLA_JED_REKL_CHRAPTIVE_POJEDES_PRESE_MNE_UJELA_S_VOZEM_DVA_KROKY_ZPET_POJD_MUSIME_DAL_DOVEZU_TE_ASPON_BLIZ_K_HRANICIM_KAM_CHCES_ZPATKY_SKRIPEL_ZUBY_ZPATKY_S_TEBOU_SE_MNOU_NENI_ANI_DOPREDU_ANI_ZPATKY_COPAK_MI_NEROZUMIS_MUSIM_TO_UDELAT_ABYS_VIDEL_ABY_BYLO_JISTO_ZE_JSEM_TE_MELA_RADA_MYSLIS_ZE_BYCH_MOHLA_JESTE_JEDNOU_SLYSET_COS_MI_REKL_ZPATKY_NEMUZES_BUD_BYS_MUSEL_VYDAT_TO_CO_NECHCES_A_NESMIS_NEBO_BY_TE_ODVEZLI_A_JA__SPUSTILA_RUCE_DO_KLINA_VIDIS_I_NA_TO_JSEM_MYSLELA_ZE_BYCH_SLA_S_TEBOU_DOPREDU_DOVEDLA_BYCH_TO_DOVEDLA_BYCH_TO_JISTE_ALE__TY_JSI_TAM_NEKDE_ZASNOUBEN_JDI_K_NI_HLED_NIKDY_ME_NENAPADLO_PTAT_SE_TE_NA_TO_KDYZ_JE_CLOVEK_PRINCEZNA_MYSLI_SI_ZE_JE_NA_SVETE_SAM_MAS_JI_RAD_POHLEDL_NA_NI_UTRYZNENYMA_OCIMA_PRECE_JEN_NEDOVEDL_ZAPRIT__TAK_VIDIS_VYDECHLA_TY_NEUMIS_ANI_LHAT_TY_MILY_ALE_POCHOP_KDYZ_JSEM_SI_TO_PAK"
-    tata = plausibility(a, bigram_matrix, ALPHABET)
+    tata = calculate_plausibility(a, bigram_matrix)
 
     print(log_to_percentage(tata))
     encrypted = "HAZW_BLNHWHWJUHVVDWAZPI_PTSZWQUZBZMW_YUZIWBZMZNW_WSJULIWHWOMTBIZWY_SNUJHCHMWAHJ_WTUCHIZWPLDZWHMZWB_YHJWWCFOUJMWYU_J_YWHWBODZMWSZWRCZPI_TDWHMZWAZPZIWYHIWNTWY_M_RLMWIHWBZM_WUTJTWAZRWQFMHWDHJWNZJJHWHWP_QUHWDHJWTALSDTALBLWHWRU_CIHWSCHDHWIHWONHDWRZWSZWUHR"
-    best_key, best_score = metropolis_hastings(encrypted, bigram_matrix, 200000)
+    best_key, best_score = metropolis_hastings(encrypted, bigram_matrix, 20000)
 
     print(f'Key: {best_key}\nDecrypted: {substitute_decrypt(encrypted, best_key)}\nScore: {log_to_percentage(best_score)} %')
-
+    save_textfile(substitute_decrypt(encrypted, best_key), f'output/text_{len(encrypted)}_sample_{1}_plaintext.txt')
+    save_textfile(best_key, f'output/text_{len(encrypted)}_sample_{1}_key.txt')

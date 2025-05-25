@@ -1,29 +1,23 @@
 import math
-
-from PyPDF2 import PdfReader
+import os
 
 from subcipher.constants import ALPHABET
 
 
-def load_pdf(file_path: str) -> str:
-    with open(file_path, 'rb') as file:
-        pdf = PdfReader(file)
-        text = ""
-        for page in pdf.pages:
-            text += page.extract_text()
-    return text
-
-
-def load_text(file_path: str) -> str:
+def load_textfile(file_path: str) -> str:
     with open(file_path, 'r', encoding='utf-8') as file:
         return file.read()
 
-def save_text(text: str, output_path: str) -> None:
+def save_textfile(text: str, output_path: str) -> None:
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, 'w', encoding='utf-8') as file:
         file.write(text)
 
 
 def normalize_text(text: str) -> str:
+    text = text.upper()
+
+    # Replace Czech diacritics
     replacements = {
         'Á': 'A', 'Č': 'C', 'Ď': 'D', 'É': 'E', 'Ě': 'E',
         'Í': 'I', 'Ň': 'N', 'Ó': 'O', 'Ř': 'R', 'Š': 'S',
@@ -34,15 +28,13 @@ def normalize_text(text: str) -> str:
     for char, replacement in replacements.items():
         normalized = normalized.replace(char, replacement)
 
-    normalized = ''.join('_' if char not in ALPHABET else char for char in normalized)
+    normalized = ''.join(char if char in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' else '_'
+                         for char in normalized)
+
     while '__' in normalized:
         normalized = normalized.replace('__', '_')
 
     return normalized
-
-def convert_pdf_to_text(input_pdf: str, output_txt: str) -> None:
-    text = load_pdf(input_pdf)
-    save_text(text, output_txt)
 
 
 def log_to_percentage(log_value: float) -> float:

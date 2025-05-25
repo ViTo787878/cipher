@@ -1,5 +1,5 @@
 # Ignoruj výstupy z dešifrování
-outputs/
+output/
 *.plaintext.txt
 *.key.txt
 

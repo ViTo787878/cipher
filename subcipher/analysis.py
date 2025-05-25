@@ -43,23 +43,6 @@ def transition_matrix(bigrams: list[str], alphabet: str) -> np.ndarray:
     matrix = matrix / matrix.sum()  # Normalizace na relativní četnosti
     return matrix
 
-
-def plausibility(text: str, TM_ref: np.ndarray, alphabet: str) -> float:
-    """
-    Spočítá věrohodnostní skóre textu vůči referenční bigramové matici.
-
-    Args:
-        text: Dešifrovaný text
-        TM_ref: Referenční relativní bigramová matice
-        alphabet: Používaná abeceda
-
-    Returns:
-        Log-likelihood skóre (float)
-    """
-    TM_obs = transition_matrix(get_bigrams(text), alphabet)
-    return np.sum(np.log(TM_ref) * TM_obs)
-
-
 def calculate_plausibility(text: str, tm_ref: np.ndarray) -> float:
     bigrams = get_bigrams(text)
 

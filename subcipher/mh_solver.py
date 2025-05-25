@@ -2,7 +2,7 @@ import math
 import random
 import numpy as np
 from subcipher.cipher import substitute_decrypt
-from subcipher.analysis import plausibility, calculate_plausibility
+from subcipher.analysis import calculate_plausibility
 from subcipher.constants import ALPHABET
 
 
