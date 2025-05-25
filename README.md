@@ -1,146 +1,172 @@
 # SubCipher
-### Python knihovna pro šifrování, dešifrování a kryptoanalýzu substituční šifry
 
-## Cíl projektu
+## Knihovna pro šifrování, dešifrování a kryptoanalýzu substituční šifry
 
-Vytvořit Python knihovnu, která umožní:
+SubCipher je Python knihovna, která poskytuje nástroje pro práci se substituční šifrou. Umožňuje šifrování a dešifrování textu pomocí substituční šifry a také implementuje Metropolis-Hastings algoritmus pro automatické prolomení šifry bez znalosti klíče.
 
-- Šifrování a dešifrování textu pomocí substituční šifry.
-- Automatické prolomení (kryptoanalýzu) této šifry pomocí statistických metod.
-- Aplikaci této knihovny na reálná šifrovaná data (např. získaná z internetu).
+### Hlavní funkce
 
----
+- **Šifrování a dešifrování** textu pomocí substituční šifry
+- **Analýza textu** a vytváření statistických modelů (bigramové matice)
+- **Automatické prolomení šifry** pomocí Metropolis-Hastings algoritmu
+- **Normalizace textu** pro práci s českými texty
 
-## Hlavní úkoly
+## Instalace
 
-### 1. Šifrování a dešifrování
-- Vytvořte modul s funkcemi pro šifrování a dešifrování substituční šifrou.
-- Klíč je permutace anglické abecedy (A-Z + mezera jako `_`), tedy 27 znaků.
+### Požadavky
 
-### 2. Prolomení šifry (kryptoanalýza)
-- Vytvořte **teoretickou bigramovou (přechodovou) matici** z dostatečně dlouhého českého textu (např. [Krakatit](https://cs.wikisource.org/wiki/Krakatit)).
-- Implementujte **Metropolis-Hastings algoritmus**, který:
-  - využívá tuto matici jako referenční model
-  - hledá permutaci klíče, která vrací nejpravděpodobnější text podle bigramové struktury
+- Python 3.13 nebo vyšší
+- Knihovny: NumPy, Pandas, Matplotlib, Jupyter
 
-### 3. Aplikační demonstrace
-- Vytvořte Jupyter notebook, který demonstruje:
-  - šifrování a dešifrování textu
-  - vytvoření bigramové matice z textu
-  - automatizovanou kryptoanalýzu poskytnutého textu
-  - vizualizace a analýzy výsledků
+### Instalace z repozitáře
 
-### 4. Export výstupů
-- Pro každý dešifrovaný text (po cca 20 000 iteracích):
-  - uložte plaintext do: `text_<délka>_sample_<id>_plaintext.txt`
-  - uložte klíč do: `text_<délka>_sample_<id>_key.txt`
+```bash
+# Klonování repozitáře
+git clone https://github.com/username/subcipher.git
+cd subcipher
 
-### 5. Výstupy a odevzdání
-- Kód knihovny s dokumentací.
-- Jupyter notebook exportovaný do PDF/HTML.
-- Stručný report popisující postup, metody a výsledky.
-- Soubory s dešifrovanými texty a klíči.
+# Instalace knihovny
+pip install -e .
 
----
+# Pro vývojáře (včetně testovacích nástrojů)
+pip install -e ".[dev]"
+```
 
-## Technické požadavky
+### Instalace z requirements.txt
 
-- Jazyk: Python
-- Povolené knihovny: např. `NumPy`, `Pandas`, `Matplotlib`
-- Důraz na: přehledný kód, testování, validaci výsledků
+```bash
+pip install -r requirements.txt
+```
 
----
+## Použití
 
-## Hodnocení
+### Šifrování a dešifrování
 
-- Funkčnost a robustnost implementace
-- Správnost kryptoanalýzy
-- Kvalita prezentace v notebooku
-- Dokumentace a komentáře
+```python
+from subcipher.cipher import substitute_encrypt, substitute_decrypt
+from subcipher.constants import ALPHABET
+import random
 
----
+# Generování náhodného klíče
+key = list(ALPHABET)
+random.shuffle(key)
+key = ''.join(key)
 
-## Teoretický základ
+# Šifrování
+plaintext = "HELLO_WORLD"
+ciphertext = substitute_encrypt(plaintext, key)
+print(f"Zašifrovaný text: {ciphertext}")
 
-### Substituční šifra
-- Nahrazení každého znaku podle zvoleného klíče.
-- Abeceda: `ABCDEFGHIJKLMNOPQRSTUVWXYZ_`
-- Např. posun o 3: A → D, B → E, …
+# Dešifrování
+decrypted = substitute_decrypt(ciphertext, key)
+print(f"Dešifrovaný text: {decrypted}")
+```
 
-### Ukázka:
-- Původní text: `BYL_POZDNI_VECER_PRVNI_MAJ_VECERNI_MAJ_BYL_LASKY_CAS`
-- Klíč: `DEFGHIJKLMNOPQRSTUVWXYZ_ABC`
-- Zašifrovaný: `EAOCSRBGQLCYHFHUCSUYQLCPDMCYHFHUQLCPDMCEAOCODVNACFDV`
+### Analýza textu a vytvoření bigramové matice
 
----
+```python
+from subcipher.analysis import get_bigrams, transition_matrix
+from subcipher.utils import load_textfile, normalize_text
 
-## Automatizované prolomení
+# Načtení a normalizace textu
+text = load_textfile("data_samples/krakatit.txt")
+normalized_text = normalize_text(text)
 
-### Bigramy
-- Sekvence dvou znaků.
-- Používají se k vytvoření **přechodové matice**.
+# Získání bigramů
+bigrams = get_bigrams(normalized_text)
 
-### Přechodová (bigramová) matice
-- Relativní matice četností bigramů (součet prvků = 1).
-- Nejprve vytvořte absolutní matici, přičtěte +1 k nulovým hodnotám a pak ji normalizujte.
+# Vytvoření přechodové matice
+tm = transition_matrix(bigrams, ALPHABET)
+```
 
----
+### Prolomení šifry pomocí Metropolis-Hastings algoritmu
+
+```python
+from subcipher.mh_solver import metropolis_hastings
+
+# Předpokládáme, že máme zašifrovaný text a referenční přechodovou matici
+decryption_key, score = metropolis_hastings(
+    ciphertext,
+    tm,
+    iterations=20000,
+    initial_temp=1.0
+)
+
+# Dešifrování pomocí nalezeného klíče
+decrypted_text = substitute_decrypt(ciphertext, decryption_key)
+print(f"Dešifrovaný text: {decrypted_text}")
+print(f"Skóre: {score}")
+```
+
+## Komponenty knihovny
+
+### cipher.py
+
+Modul obsahující funkce pro šifrování a dešifrování textu pomocí substituční šifry.
+
+- `substitute_encrypt(text, key)`: Šifruje text pomocí zadaného klíče
+- `substitute_decrypt(text, key)`: Dešifruje text pomocí zadaného klíče
+
+### analysis.py
+
+Modul pro analýzu textu a výpočet statistických vlastností.
+
+- `get_bigrams(text)`: Získá seznam bigramů z textu
+- `transition_matrix(bigrams, alphabet)`: Vytvoří přechodovou matici z bigramů
+- `calculate_plausibility(text, tm_ref)`: Vypočítá věrohodnost textu podle referenční matice
+
+### mh_solver.py
+
+Implementace Metropolis-Hastings algoritmu pro prolomení substituční šifry.
+
+- `metropolis_hastings(ciphertext, tm_ref, iterations, initial_temp)`: Hledá klíč pro dešifrování
+
+### utils.py
+
+Pomocné funkce pro práci s textem a soubory.
+
+- `load_textfile(file_path)`: Načte text ze souboru
+- `save_textfile(text, output_path)`: Uloží text do souboru
+- `normalize_text(text)`: Normalizuje text (převod na velká písmena, odstranění diakritiky, atd.)
+
+### constants.py
+
+Definice konstant používaných v knihovně.
+
+- `ALPHABET`: Definice abecedy používané pro šifrování (A-Z + podtržítko)
 
 ## Metropolis-Hastings algoritmus
 
-1. **Inicializace**: náhodný klíč, výpočet plausibility.
-2. **Generování kandidátního klíče**: prohoďte náhodně dva znaky.
-3. **Vyhodnocení kandidáta**: spočítejte novou plausibility.
-4. **Rozhodnutí**:
-   - Pokud nový klíč lepší → přijmout.
-   - Jinak přijmout s pravděpodobností `ρ = min(1, p_new / p_current)`
-5. **Iterace**: uchovávejte nejlepší výsledek.
-6. **Výsledek**: klíč s nejvyšší plausibility.
+Metropolis-Hastings algoritmus je metoda Markov Chain Monte Carlo (MCMC), která umožňuje vzorkování z pravděpodobnostních distribucí. V kontextu kryptoanalýzy jej používáme k prohledávání prostoru možných klíčů a nalezení toho, který s největší pravděpodobností dešifruje text správně.
 
----
+### Princip algoritmu
 
-## API – Pseudokódy
+1. **Inicializace**: Začínáme s náhodným klíčem a vypočítáme jeho skóre věrohodnosti.
+2. **Iterace**: V každé iteraci:
+   - Vytvoříme nový kandidátní klíč záměnou dvou náhodných znaků v aktuálním klíči
+   - Dešifrujeme text pomocí nového klíče a vypočítáme jeho skóre
+   - Rozhodneme, zda přijmout nový klíč:
+     - Pokud je nové skóre lepší než aktuální, přijmeme nový klíč
+     - Pokud je horší, přijmeme jej s pravděpodobností závislou na rozdílu skóre a teplotě
+   - Teplota se postupně snižuje (simulované žíhání), což vede k menší pravděpodobnosti přijetí horších řešení
+3. **Výsledek**: Algoritmus vrátí nejlepší nalezený klíč a jeho skóre
 
-### Šifrování
-```python
-FUNCTION substitute_encrypt(plaintext, key)
-```
+### Parametry
 
-### Dešifrování
-```python
-FUNCTION substitute_decrypt(ciphertext, key)
-```
+- `iterations`: Počet iterací algoritmu (doporučeno 10 000 - 20 000)
+- `initial_temp`: Počáteční teplota pro simulované žíhání (výchozí hodnota 1.0)
 
-### Získání bigramů
-```python
-FUNCTION get_bigrams(text)
-```
+## Doporučení pro použití
 
-### Přechodová matice
-```python
-FUNCTION transition_matrix(bigrams)
-```
+- Pro dosažení úspěšnosti dešifrování nad 90% je potřeba text o délce alespoň 1000 znaků
+- Referenční text by měl být ze stejné domény nebo žánru jako šifrovaný text
+- Optimální počet iterací je mezi 10 000 a 20 000
+- Pro kritické aplikace je vhodné kombinovat automatické dešifrování s ruční analýzou
 
-### Výpočet plausibility
-```python
-FUNCTION plausibility(text, TM_ref)
-```
+## Příklady
 
-### Hlavní kryptoanalytická funkce
-```python
-FUNCTION prolom_substitute(text, TM_ref, iter, start_key)
-```
+Podrobné příklady použití knihovny najdete v Jupyter notebooku `notebooks/subcipher_deep_analysis.ipynb`.
 
----
+## Licence
 
-## Ukázková data
-
-- `text_1000_sample_1_ciphertext.txt`
-- `text_1000_sample_1_key.txt`
-- `text_1000_sample_1_plaintext.txt`
-
----
-
-## Doporučené zdroje
-
-- [Krakatit – Wikisource](https://cs.wikisource.org/wiki/Krakatit) – vhodný pro tvorbu referenční matice.
+Tento projekt je licencován pod MIT licencí - viz soubor LICENSE pro více informací.
